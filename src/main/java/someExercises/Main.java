@@ -1,11 +1,12 @@
 package someExercises;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
+import java.security.Key;
+import java.util.*;
 import java.util.function.*;
+import java.util.stream.Collector;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
+import java.util.stream.LongStream;
 
 
 public class Main {
@@ -30,6 +31,26 @@ public class Main {
                     x.add(y);return x;}
                 , (left, right)->{left.addAll(right);return left;}
         ));
+
+        //Реализуйте метод Collectors. groupingBy в виде пользовательского коллектора.
+        //Задача: есть класс Rko. Нужно список объектов Rko собрать в мапу по потокам. Ключ - номер потока, который будет обрабатывать список, значение - собственно список объектов Rko.
+        // Map<Long, List<Rko>>
+
+        //создадим просто от 1 до 20
+        //кстати, через стриму, чё нет..
+        List<Rko> rkoList = LongStream.rangeClosed(1, 20).boxed().map(x->new Rko(x, "001")).toList();
+        //или
+        rkoList = LongStream.rangeClosed(1, 20).boxed().collect(()->new ArrayList<>(), (m,y)->m.add(new Rko(y, "001")), (left, right)->left.addAll(right));
+
+        //сделаем через штатный коллектор
+        Map<Long, List<Rko>> resMap = rkoList.stream()
+                .collect(Collectors.groupingBy(x->x.getId()%10, Collectors.toList()));
+        //System.out.println("Сколько получилось ключей = " + resMap.keySet().stream().count() + ": " + resMap.keySet());
+
+        // а здесь через свой
+        Map<Long, List<Rko>> resMap1 = rkoList.stream()
+                .collect(new MyGroupingBy());
+        //System.out.println("Сколько получилось ключей (польз.коллектор) = " + resMap1.keySet().stream().count() + ": " + resMap1.keySet() + resMap1);
 
         //1. Напишите программу на Java для реализации лямбда-выражения для нахождения суммы двух целых чисел.
         Operation sum = (x, y) -> x + y;
@@ -173,7 +194,6 @@ public class Main {
     interface Operation{
         int oper(int a, int b);
     }
-
 
 
 
